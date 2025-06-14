@@ -244,20 +244,53 @@
         </div>
         
         <div class="content">
-            <!-- Link a Airtable -->
-            <div class="airtable-link">
-                <p>📊 <strong>Paso 1:</strong> <a href="https://sheets.google.com" target="_blank">Ir a Google Sheets para cargar datos</a></p>
-            </div>
-            
-            <!-- Instrucciones -->
-            <div class="instructions">
-                <h3>📋 Instrucciones de uso</h3>
-                <ol>
-                    <li><strong>Ve a Google Sheets</strong> y carga/pega tus datos ICC</li>
-                    <li><strong>Exporta como CSV:</strong> Archivo → Descargar → CSV</li>
-                    <li><strong>Sube el CSV aquí</strong> para procesar a Supabase</li>
-                    <li><strong>¡Listo!</strong> Los datos se sincronizan automáticamente</li>
-                </ol>
+            <!-- Sección de plantillas mejorada -->
+            <div class="template-section">
+                <h3>📋 Plantillas y Formato</h3>
+                <p style="margin-bottom: 15px;">Descarga la plantilla para asegurar el formato correcto de tus datos:</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 20px;">
+                    <button class="btn btn-success" onclick="downloadExcelTemplate()">
+                        📥 Descargar Plantilla Excel
+                    </button>
+                    <button class="btn btn-success" onclick="downloadCSVTemplate()">
+                        📥 Descargar Plantilla CSV
+                    </button>
+                    <button class="btn btn-success" onclick="openGoogleSheetTemplate()">
+                        📊 Abrir Google Sheet Plantilla
+                    </button>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #1c89d8;">
+                    <h4 style="margin-bottom: 10px; color: #000;">📝 Formato requerido:</h4>
+                    <div style="font-family: monospace; background: white; padding: 10px; border-radius: 4px; margin-bottom: 10px; overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr style="background: #e9ecef;">
+                                <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">icc_number</th>
+                                <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">mobile_number</th>
+                                <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">activation_date</th>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; border: 1px solid #ddd;">8952140063253528071F</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">5551234567</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">15/6/2025</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; border: 1px solid #ddd;">8952140063253528072F</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">5559876543</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">16/6/2025</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div style="font-size: 0.9em; color: #666;">
+                        <strong>⚠️ Importante:</strong>
+                        <ul style="margin: 5px 0 0 20px;">
+                            <li><strong>ICC:</strong> Exactamente 19 dígitos + letra F</li>
+                            <li><strong>Teléfono:</strong> 10 dígitos (sin espacios ni guiones)</li>
+                            <li><strong>Fecha:</strong> Formato DD/MM/YYYY o DD/M/YYYY</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
             
             <!-- Zona de carga -->

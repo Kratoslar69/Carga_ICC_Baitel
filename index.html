@@ -572,7 +572,7 @@
                     activation_date: formattedDate,
                     expiration_date: formattedExpirationDate,
                     status: record[statusField] || 'available',
-                    whatsapp_validated: false,
+                    whatsapp_validated: true,
                     upload_batch: `AIRTABLE_${new Date().toISOString().split('T')[0]}`,
                     created_at: new Date().toISOString()
                 };

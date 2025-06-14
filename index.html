@@ -557,6 +557,12 @@
                     }
                 }
 
+                // Calcular expiration_date (15 días después de activation_date)
+                const activationDate = new Date(formattedDate);
+                const expirationDate = new Date(activationDate);
+                expirationDate.setDate(activationDate.getDate() + 15);
+                const formattedExpirationDate = expirationDate.toISOString().split('T')[0];
+
                 // Verificar si el ICC ya existe
                 const existing = await checkIfICCExists(record[iccField]);
 
@@ -564,6 +570,7 @@
                     icc_number: record[iccField],
                     mobile_number: cleanMobileNumber,
                     activation_date: formattedDate,
+                    expiration_date: formattedExpirationDate,
                     status: record[statusField] || 'available',
                     whatsapp_validated: false,
                     upload_batch: `AIRTABLE_${new Date().toISOString().split('T')[0]}`,

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NN8L - Procesador CSV Airtable</title>
+    <title>Sistema de Carga Bait - Clientes Nuevos</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700;800;900&display=swap');
@@ -239,22 +239,22 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚀 NN8L</h1>
-            <p>Procesador CSV desde Airtable • Bait</p>
+            <h1>📱 Sistema de Carga Bait</h1>
+            <p>Clientes Nuevos • Gestión ICC</p>
         </div>
         
         <div class="content">
             <!-- Link a Airtable -->
             <div class="airtable-link">
-                <p>📊 <strong>Paso 1:</strong> <a href="https://airtable.com" target="_blank">Ir a Airtable para cargar datos</a></p>
+                <p>📊 <strong>Paso 1:</strong> <a href="https://sheets.google.com" target="_blank">Ir a Google Sheets para cargar datos</a></p>
             </div>
             
             <!-- Instrucciones -->
             <div class="instructions">
                 <h3>📋 Instrucciones de uso</h3>
                 <ol>
-                    <li><strong>Ve a tu base de Airtable</strong> y carga/pega tus datos ICC</li>
-                    <li><strong>Exporta como CSV:</strong> Menú "..." → "Download CSV"</li>
+                    <li><strong>Ve a Google Sheets</strong> y carga/pega tus datos ICC</li>
+                    <li><strong>Exporta como CSV:</strong> Archivo → Descargar → CSV</li>
                     <li><strong>Sube el CSV aquí</strong> para procesar a Supabase</li>
                     <li><strong>¡Listo!</strong> Los datos se sincronizan automáticamente</li>
                 </ol>
@@ -263,9 +263,9 @@
             <!-- Zona de carga -->
             <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
                 <div class="upload-icon">📄</div>
-                <h3>Arrastra y suelta tu CSV de Airtable aquí</h3>
+                <h3>Arrastra y suelta tu CSV de Google Sheets aquí</h3>
                 <p>o haz clic para seleccionar</p>
-                <p style="margin-top: 10px; color: #7f8c8d;">Solo archivos CSV exportados desde Airtable</p>
+                <p style="margin-top: 10px; color: #7f8c8d;">Solo archivos CSV exportados desde Google Sheets</p>
                 <input type="file" id="fileInput" class="file-input" accept=".csv" onchange="handleFile(this.files[0])">
             </div>
             
@@ -431,7 +431,7 @@
                         if (missingFields.length > 0) {
                             log(`Error: Faltan columnas: ${missingFields.join(', ')}`, 'error');
                             log(`Columnas encontradas: ${headers.join(', ')}`, 'info');
-                            log('Asegúrate de exportar desde Airtable con las columnas correctas', 'error');
+                            log('Asegúrate de exportar desde Google Sheets con las columnas correctas', 'error');
                             return;
                         }
                         
@@ -588,7 +588,7 @@
                     expiration_date: formattedExpirationDate,
                     status: record[statusField] || 'available',
                     whatsapp_validated: true,
-                    upload_batch: `AIRTABLE_${new Date().toISOString().split('T')[0]}`,
+                    upload_batch: `SHEETS_${new Date().toISOString().split('T')[0]}`,
                     created_at: new Date().toISOString()
                 };
 
@@ -655,7 +655,7 @@
 
         // Test de conexión al cargar
         window.addEventListener('load', async function() {
-            log('Iniciando sistema NN8L...', 'info');
+            log('Iniciando Sistema de Carga Bait...', 'info');
             
             try {
                 const response = await fetch(`${apiUrl}/bait_portability_eligible_icc?select=count`, {
@@ -664,9 +664,9 @@
                 });
                 
                 if (response.ok) {
-                    log('✅ Sistema NN8L iniciado correctamente', 'success');
+                    log('✅ Sistema de Carga Bait iniciado correctamente', 'success');
                     log('✅ Conexión con Supabase establecida', 'success');
-                    log('📋 Listo para procesar archivos CSV desde Airtable', 'info');
+                    log('📋 Listo para procesar archivos CSV desde Google Sheets', 'info');
                 } else {
                     log('❌ Error conectando con Supabase', 'error');
                 }

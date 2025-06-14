@@ -418,17 +418,24 @@
                     parsedData = results.data;
                     log(`Archivo parseado: ${parsedData.length} registros encontrados`, 'success');
                     
-                    // Validar columnas esperadas
+                    // Validar columnas esperadas (flexible con mayúsculas/minúsculas)
                     if (parsedData.length > 0) {
                         const firstRow = parsedData[0];
-                        const requiredFields = ['ICC_NUMBER', 'MOBILE_NUMBER', 'ACTIVATION_DATE'];
-                        const missingFields = requiredFields.filter(field => !(field in firstRow));
+                        const headers = Object.keys(firstRow);
+                        
+                        // Normalizar headers a lowercase para comparación
+                        const normalizedHeaders = headers.map(h => h.toLowerCase());
+                        const requiredFields = ['icc_number', 'mobile_number', 'activation_date'];
+                        const missingFields = requiredFields.filter(field => !normalizedHeaders.includes(field));
                         
                         if (missingFields.length > 0) {
                             log(`Error: Faltan columnas: ${missingFields.join(', ')}`, 'error');
+                            log(`Columnas encontradas: ${headers.join(', ')}`, 'info');
                             log('Asegúrate de exportar desde Airtable con las columnas correctas', 'error');
                             return;
                         }
+                        
+                        log(`Columnas detectadas: ${headers.join(', ')}`, 'info');
                     }
                     
                     document.getElementById('processBtn').disabled = false;
@@ -499,15 +506,20 @@
         function validateRecord(record) {
             const errors = [];
             
-            if (!record.ICC_NUMBER || record.ICC_NUMBER.length < 15) {
+            // Buscar campos con nombres flexibles (mayúsculas/minúsculas)
+            const iccField = Object.keys(record).find(key => key.toLowerCase() === 'icc_number');
+            const mobileField = Object.keys(record).find(key => key.toLowerCase() === 'mobile_number');
+            const dateField = Object.keys(record).find(key => key.toLowerCase() === 'activation_date');
+            
+            if (!iccField || !record[iccField] || record[iccField].length < 15) {
                 errors.push('ICC_NUMBER inválido');
             }
             
-            if (!record.MOBILE_NUMBER) {
+            if (!mobileField || !record[mobileField]) {
                 errors.push('MOBILE_NUMBER faltante');
             }
             
-            if (!record.ACTIVATION_DATE) {
+            if (!dateField || !record[dateField]) {
                 errors.push('ACTIVATION_DATE faltante');
             }
             
@@ -523,17 +535,23 @@
                     return;
                 }
 
+                // Buscar campos con nombres flexibles
+                const iccField = Object.keys(record).find(key => key.toLowerCase() === 'icc_number');
+                const mobileField = Object.keys(record).find(key => key.toLowerCase() === 'mobile_number');
+                const dateField = Object.keys(record).find(key => key.toLowerCase() === 'activation_date');
+                const statusField = Object.keys(record).find(key => key.toLowerCase() === 'status');
+
                 // Limpiar número de teléfono
-                const cleanMobileNumber = record.MOBILE_NUMBER.toString().replace(/[^\d]/g, '');
+                const cleanMobileNumber = record[mobileField].toString().replace(/[^\d]/g, '');
 
                 // Verificar si el ICC ya existe
-                const existing = await checkIfICCExists(record.ICC_NUMBER);
+                const existing = await checkIfICCExists(record[iccField]);
 
                 const recordData = {
-                    icc_number: record.ICC_NUMBER,
+                    icc_number: record[iccField],
                     mobile_number: cleanMobileNumber,
-                    activation_date: record.ACTIVATION_DATE,
-                    status: record.Status || 'available',
+                    activation_date: record[dateField],
+                    status: record[statusField] || 'available',
                     whatsapp_validated: false,
                     upload_batch: `AIRTABLE_${new Date().toISOString().split('T')[0]}`,
                     created_at: new Date().toISOString()
@@ -542,11 +560,11 @@
                 if (existing) {
                     await updateExistingRecord(existing.id, recordData);
                     stats.updated++;
-                    log(`Registro ${index + 1}: ICC ${record.ICC_NUMBER} actualizado`, 'success');
+                    log(`Registro ${index + 1}: ICC ${record[iccField]} actualizado`, 'success');
                 } else {
                     await insertNewRecord(recordData);
                     stats.new++;
-                    log(`Registro ${index + 1}: ICC ${record.ICC_NUMBER} creado`, 'success');
+                    log(`Registro ${index + 1}: ICC ${record[iccField]} creado`, 'success');
                 }
 
                 const progress = Math.round(((index + 1) / total) * 100);

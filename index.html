@@ -544,13 +544,26 @@
                 // Limpiar número de teléfono
                 const cleanMobileNumber = record[mobileField].toString().replace(/[^\d]/g, '');
 
+                // Convertir fecha al formato correcto (YYYY-MM-DD)
+                let formattedDate = record[dateField];
+                if (formattedDate.includes('/')) {
+                    // Convertir de DD/MM/YYYY o DD/M/YYYY a YYYY-MM-DD
+                    const dateParts = formattedDate.split('/');
+                    if (dateParts.length === 3) {
+                        const day = dateParts[0].padStart(2, '0');
+                        const month = dateParts[1].padStart(2, '0');
+                        const year = dateParts[2];
+                        formattedDate = `${year}-${month}-${day}`;
+                    }
+                }
+
                 // Verificar si el ICC ya existe
                 const existing = await checkIfICCExists(record[iccField]);
 
                 const recordData = {
                     icc_number: record[iccField],
                     mobile_number: cleanMobileNumber,
-                    activation_date: record[dateField],
+                    activation_date: formattedDate,
                     status: record[statusField] || 'available',
                     whatsapp_validated: false,
                     upload_batch: `AIRTABLE_${new Date().toISOString().split('T')[0]}`,

@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NN8L - Procesador CSV Airtable</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700;800;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Gothic A1', 'Gotham', Arial, sans-serif;
+            background: linear-gradient(135deg, #1c89d8 0%, #285C8C 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #000000, #1c89d8);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 900;
+            letter-spacing: -1px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .instructions {
+            background: #ffffff;
+            border: 2px solid #ffd100;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .instructions h3 {
+            color: #000000;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .instructions ol {
+            margin-left: 20px;
+            color: #333;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .upload-zone {
+            border: 3px dashed #1c89d8;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .upload-zone:hover {
+            border-color: #285C8C;
+            background-color: #f8f9fa;
+        }
+        
+        .upload-zone.dragover {
+            border-color: #ffd100;
+            background-color: #fffacd;
+        }
+        
+        .upload-icon {
+            font-size: 3em;
+            color: #1c89d8;
+            margin-bottom: 20px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #1c89d8, #285C8C);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            margin: 10px;
+            transition: all 0.3s ease;
+            font-family: 'Gothic A1', 'Gotham', Arial, sans-serif;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(28, 137, 216, 0.3);
+        }
+        
+        .btn:disabled {
+            background: #dcdcdc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .progress-container {
+            display: none;
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #ecf0f1;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #ffd100, #ffed4e);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .log-container {
+            background: #000000;
+            color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Gothic A1', monospace;
+            font-size: 0.9em;
+            display: none;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+        
+        .log-success {
+            color: #ffd100;
+        }
+        
+        .log-error {
+            color: #ff6b6b;
+        }
+        
+        .log-info {
+            color: #1c89d8;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: 800;
+            color: #1c89d8;
+        }
+        
+        .stat-label {
+            color: #dcdcdc;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+        
+        .airtable-link {
+            background: #ffffff;
+            border: 2px solid #1c89d8;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .airtable-link a {
+            color: #1c89d8;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+        
+        .airtable-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 NN8L</h1>
+            <p>Procesador CSV desde Airtable • Bait</p>
+        </div>
+        
+        <div class="content">
+            <!-- Link a Airtable -->
+            <div class="airtable-link">
+                <p>📊 <strong>Paso 1:</strong> <a href="https://airtable.com" target="_blank">Ir a Airtable para cargar datos</a></p>
+            </div>
+            
+            <!-- Instrucciones -->
+            <div class="instructions">
+                <h3>📋 Instrucciones de uso</h3>
+                <ol>
+                    <li><strong>Ve a tu base de Airtable</strong> y carga/pega tus datos ICC</li>
+                    <li><strong>Exporta como CSV:</strong> Menú "..." → "Download CSV"</li>
+                    <li><strong>Sube el CSV aquí</strong> para procesar a Supabase</li>
+                    <li><strong>¡Listo!</strong> Los datos se sincronizan automáticamente</li>
+                </ol>
+            </div>
+            
+            <!-- Zona de carga -->
+            <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-icon">📄</div>
+                <h3>Arrastra y suelta tu CSV de Airtable aquí</h3>
+                <p>o haz clic para seleccionar</p>
+                <p style="margin-top: 10px; color: #7f8c8d;">Solo archivos CSV exportados desde Airtable</p>
+                <input type="file" id="fileInput" class="file-input" accept=".csv" onchange="handleFile(this.files[0])">
+            </div>
+            
+            <!-- Botón de procesamiento -->
+            <div style="text-align: center; margin: 20px 0;">
+                <button class="btn" id="processBtn" onclick="processData()" disabled>
+                    🔄 Procesar datos a Supabase
+                </button>
+            </div>
+            
+            <!-- Progreso -->
+            <div class="progress-container" id="progressContainer">
+                <h4>Procesando registros...</h4>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div id="progressText">0%</div>
+            </div>
+            
+            <!-- Estadísticas -->
+            <div class="stats" id="statsContainer">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalRecords">0</div>
+                    <div class="stat-label">Total Registros</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="newRecords">0</div>
+                    <div class="stat-label">Nuevos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="updatedRecords">0</div>
+                    <div class="stat-label">Actualizados</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="errorRecords">0</div>
+                    <div class="stat-label">Errores</div>
+                </div>
+            </div>
+            
+            <!-- Log -->
+            <div class="log-container" id="logContainer">
+                <div id="logContent"></div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn" onclick="clearLog()">🗑️ Limpiar Log</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de Supabase REST API
+        const supabaseUrl = 'https://devsupabase.m4metadryve.mx';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICJyb2xlIjogImFub24iLAogICJpc3MiOiAic3VwYWJhc2UiLAogICJpYXQiOiAxNzE1MDUwODAwLAogICJleHAiOiAxODcyODE3MjAwCn0.PgdtfQRzmrAz1n7OHpgJPEHFIrQHP_Y0G1L8xllmd1M';
+        const apiUrl = `${supabaseUrl}/rest/v1`;
+        
+        const headers = {
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+        };
+        
+        let parsedData = [];
+        let stats = {
+            total: 0,
+            new: 0,
+            updated: 0,
+            errors: 0
+        };
+
+        // Configuración drag & drop
+        const uploadZone = document.getElementById('uploadZone');
+        
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+        
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+        
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) handleFile(file);
+        });
+
+        function log(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const logContent = document.getElementById('logContent');
+            
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            
+            logContent.appendChild(logEntry);
+            logContainer.style.display = 'block';
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function updateProgress(percent) {
+            document.getElementById('progressFill').style.width = percent + '%';
+            document.getElementById('progressText').textContent = percent + '%';
+        }
+
+        function showProgress() {
+            document.getElementById('progressContainer').style.display = 'block';
+        }
+
+        function hideProgress() {
+            document.getElementById('progressContainer').style.display = 'none';
+        }
+
+        function updateStats() {
+            document.getElementById('totalRecords').textContent = stats.total;
+            document.getElementById('newRecords').textContent = stats.new;
+            document.getElementById('updatedRecords').textContent = stats.updated;
+            document.getElementById('errorRecords').textContent = stats.errors;
+            document.getElementById('statsContainer').style.display = 'grid';
+        }
+
+        function resetStats() {
+            stats = { total: 0, new: 0, updated: 0, errors: 0 };
+            updateStats();
+        }
+
+        function handleFile(file) {
+            if (!file) return;
+            
+            if (!file.name.endsWith('.csv')) {
+                log('Error: Solo se aceptan archivos CSV', 'error');
+                return;
+            }
+            
+            log(`Leyendo archivo: ${file.name}`, 'info');
+            
+            Papa.parse(file, {
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    if (results.errors.length > 0) {
+                        log('Error parseando CSV: ' + results.errors[0].message, 'error');
+                        return;
+                    }
+                    
+                    parsedData = results.data;
+                    log(`Archivo parseado: ${parsedData.length} registros encontrados`, 'success');
+                    
+                    // Validar columnas esperadas
+                    if (parsedData.length > 0) {
+                        const firstRow = parsedData[0];
+                        const requiredFields = ['ICC_NUMBER', 'MOBILE_NUMBER', 'ACTIVATION_DATE'];
+                        const missingFields = requiredFields.filter(field => !(field in firstRow));
+                        
+                        if (missingFields.length > 0) {
+                            log(`Error: Faltan columnas: ${missingFields.join(', ')}`, 'error');
+                            log('Asegúrate de exportar desde Airtable con las columnas correctas', 'error');
+                            return;
+                        }
+                    }
+                    
+                    document.getElementById('processBtn').disabled = false;
+                    log('Archivo listo para procesar. Haz clic en "Procesar datos"', 'info');
+                },
+                error: function(error) {
+                    log('Error leyendo archivo: ' + error.message, 'error');
+                }
+            });
+        }
+
+        async function checkIfICCExists(iccNumber) {
+            try {
+                const response = await fetch(`${apiUrl}/bait_portability_eligible_icc?icc_number=eq.${iccNumber}&select=id`, {
+                    method: 'GET',
+                    headers: headers
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                return data.length > 0 ? data[0] : null;
+            } catch (error) {
+                throw new Error(`Error verificando ICC: ${error.message}`);
+            }
+        }
+        
+        async function insertNewRecord(recordData) {
+            try {
+                const response = await fetch(`${apiUrl}/bait_portability_eligible_icc`, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(recordData)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    throw new Error(`Error HTTP ${response.status}: ${errorData}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                throw new Error(`Error creando registro: ${error.message}`);
+            }
+        }
+        
+        async function updateExistingRecord(id, recordData) {
+            try {
+                const response = await fetch(`${apiUrl}/bait_portability_eligible_icc?id=eq.${id}`, {
+                    method: 'PATCH',
+                    headers: headers,
+                    body: JSON.stringify(recordData)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    throw new Error(`Error HTTP ${response.status}: ${errorData}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                throw new Error(`Error actualizando registro: ${error.message}`);
+            }
+        }
+
+        function validateRecord(record) {
+            const errors = [];
+            
+            if (!record.ICC_NUMBER || record.ICC_NUMBER.length < 15) {
+                errors.push('ICC_NUMBER inválido');
+            }
+            
+            if (!record.MOBILE_NUMBER) {
+                errors.push('MOBILE_NUMBER faltante');
+            }
+            
+            if (!record.ACTIVATION_DATE) {
+                errors.push('ACTIVATION_DATE faltante');
+            }
+            
+            return errors;
+        }
+
+        async function processRecord(record, index, total) {
+            try {
+                const validationErrors = validateRecord(record);
+                if (validationErrors.length > 0) {
+                    log(`Registro ${index + 1}: ${validationErrors.join(', ')}`, 'error');
+                    stats.errors++;
+                    return;
+                }
+
+                // Limpiar número de teléfono
+                const cleanMobileNumber = record.MOBILE_NUMBER.toString().replace(/[^\d]/g, '');
+
+                // Verificar si el ICC ya existe
+                const existing = await checkIfICCExists(record.ICC_NUMBER);
+
+                const recordData = {
+                    icc_number: record.ICC_NUMBER,
+                    mobile_number: cleanMobileNumber,
+                    activation_date: record.ACTIVATION_DATE,
+                    status: record.Status || 'available',
+                    whatsapp_validated: false,
+                    upload_batch: `AIRTABLE_${new Date().toISOString().split('T')[0]}`,
+                    created_at: new Date().toISOString()
+                };
+
+                if (existing) {
+                    await updateExistingRecord(existing.id, recordData);
+                    stats.updated++;
+                    log(`Registro ${index + 1}: ICC ${record.ICC_NUMBER} actualizado`, 'success');
+                } else {
+                    await insertNewRecord(recordData);
+                    stats.new++;
+                    log(`Registro ${index + 1}: ICC ${record.ICC_NUMBER} creado`, 'success');
+                }
+
+                const progress = Math.round(((index + 1) / total) * 100);
+                updateProgress(progress);
+
+            } catch (error) {
+                stats.errors++;
+                log(`Registro ${index + 1}: Error - ${error.message}`, 'error');
+            }
+        }
+
+        async function processData() {
+            if (!parsedData || parsedData.length === 0) {
+                log('No hay datos para procesar', 'error');
+                return;
+            }
+
+            document.getElementById('processBtn').disabled = true;
+            resetStats();
+            showProgress();
+            
+            log('Iniciando procesamiento de datos...', 'info');
+            stats.total = parsedData.length;
+            updateStats();
+
+            try {
+                for (let i = 0; i < parsedData.length; i++) {
+                    await processRecord(parsedData[i], i, parsedData.length);
+                    
+                    // Pausa pequeña para evitar sobrecargar la API
+                    if (i % 3 === 0 && i > 0) {
+                        await new Promise(resolve => setTimeout(resolve, 200));
+                    }
+                }
+
+                hideProgress();
+                updateStats();
+                log(`✅ Procesamiento completado: ${stats.new} nuevos, ${stats.updated} actualizados, ${stats.errors} errores`, 'success');
+                
+            } catch (error) {
+                hideProgress();
+                log(`Error en procesamiento: ${error.message}`, 'error');
+            } finally {
+                document.getElementById('processBtn').disabled = false;
+            }
+        }
+
+        function clearLog() {
+            document.getElementById('logContent').innerHTML = '';
+            document.getElementById('logContainer').style.display = 'none';
+            document.getElementById('statsContainer').style.display = 'none';
+        }
+
+        // Test de conexión al cargar
+        window.addEventListener('load', async function() {
+            log('Iniciando sistema NN8L...', 'info');
+            
+            try {
+                const response = await fetch(`${apiUrl}/bait_portability_eligible_icc?select=count`, {
+                    method: 'GET',
+                    headers: headers
+                });
+                
+                if (response.ok) {
+                    log('✅ Sistema NN8L iniciado correctamente', 'success');
+                    log('✅ Conexión con Supabase establecida', 'success');
+                    log('📋 Listo para procesar archivos CSV desde Airtable', 'info');
+                } else {
+                    log('❌ Error conectando con Supabase', 'error');
+                }
+            } catch (error) {
+                log('❌ Error de conexión: ' + error.message, 'error');
+            }
+        });
+    </script>
+</body>
+</html>

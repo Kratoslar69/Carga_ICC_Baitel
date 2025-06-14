@@ -511,14 +511,29 @@
             const mobileField = Object.keys(record).find(key => key.toLowerCase() === 'mobile_number');
             const dateField = Object.keys(record).find(key => key.toLowerCase() === 'activation_date');
             
-            if (!iccField || !record[iccField] || record[iccField].length < 15) {
-                errors.push('ICC_NUMBER inválido');
+            // Validación estricta del ICC: exactamente 19 dígitos + F
+            if (!iccField || !record[iccField]) {
+                errors.push('ICC_NUMBER faltante');
+            } else {
+                const iccValue = record[iccField].toString().trim();
+                // Debe ser exactamente 19 dígitos seguidos de F
+                const iccPattern = /^\d{19}F$/;
+                if (!iccPattern.test(iccValue)) {
+                    errors.push(`ICC inválido: "${iccValue}" (debe ser exactamente 19 dígitos + F)`);
+                }
             }
             
+            // Validación del número móvil
             if (!mobileField || !record[mobileField]) {
                 errors.push('MOBILE_NUMBER faltante');
+            } else {
+                const cleanMobile = record[mobileField].toString().replace(/[^\d]/g, '');
+                if (cleanMobile.length !== 10) {
+                    errors.push(`Teléfono inválido: "${record[mobileField]}" (debe tener exactamente 10 dígitos)`);
+                }
             }
             
+            // Validación de fecha
             if (!dateField || !record[dateField]) {
                 errors.push('ACTIVATION_DATE faltante');
             }

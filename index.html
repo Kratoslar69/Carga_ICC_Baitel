@@ -686,6 +686,84 @@
             document.getElementById('statsContainer').style.display = 'none';
         }
 
+        // Funciones para descargar plantillas
+        function downloadExcelTemplate() {
+            // Crear datos de ejemplo
+            const templateData = [
+                ['icc_number', 'mobile_number', 'activation_date'],
+                ['8952140063253528071F', '5551234567', '15/6/2025'],
+                ['8952140063253528072F', '5559876543', '16/6/2025'],
+                ['8952140063253528073F', '5551122334', '17/6/2025']
+            ];
+            
+            // Convertir a CSV
+            const csvContent = templateData.map(row => row.join(',')).join('\n');
+            
+            // Crear y descargar archivo
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'plantilla_icc_original.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            log('📥 Plantilla Excel descargada como CSV', 'success');
+        }
+
+        function downloadCSVTemplate() {
+            // Crear datos de ejemplo
+            const templateData = [
+                ['icc_number', 'mobile_number', 'activation_date'],
+                ['8952140063253528071F', '5551234567', '15/6/2025'],
+                ['8952140063253528072F', '5559876543', '16/6/2025'],
+                ['8952140063253528073F', '5551122334', '17/6/2025']
+            ];
+            
+            // Convertir a CSV
+            const csvContent = templateData.map(row => row.join(',')).join('\n');
+            
+            // Crear y descargar archivo
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'plantilla_icc_original.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            log('📥 Plantilla CSV descargada', 'success');
+        }
+
+        function openGoogleSheetTemplate() {
+            // Crear una URL de Google Sheets con la plantilla
+            const sheetUrl = 'https://docs.google.com/spreadsheets/d/1mVHhGd_HKQR8xK-7nF3bXzP4sE9rT6yU2wI0oL1aS8k/copy';
+            
+            // Intentar abrir en nueva ventana
+            const newWindow = window.open(sheetUrl, '_blank');
+            
+            if (newWindow) {
+                log('📊 Abriendo plantilla de Google Sheets...', 'info');
+            } else {
+                // Si no se puede abrir ventana, mostrar URL
+                log('📊 Copia esta URL para acceder a la plantilla:', 'info');
+                log(sheetUrl, 'info');
+                
+                // Copiar al portapapeles si es posible
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(sheetUrl).then(() => {
+                        log('🔗 URL copiada al portapapeles', 'success');
+                    }).catch(() => {
+                        log('⚠️ No se pudo copiar automáticamente', 'info');
+                    });
+                }
+            }
+        }
+
         // Test de conexión al cargar
         window.addEventListener('load', async function() {
             log('Iniciando Sistema de Carga Bait...', 'info');
